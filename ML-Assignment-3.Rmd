@@ -1,0 +1,91 @@
+---
+title: "assignment-3ml"
+author: "swetha"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+
+library(ISLR)
+data(Auto)
+
+##a
+mpg01 <- ifelse(Auto$mpg > median(Auto$mpg), 1, 0)
+
+
+Auto$mpg01 <- mpg01
+
+```
+
+```{r}
+##b
+
+boxplot(horsepower ~ mpg01, data = Auto, main = "Horsepower vs mpg01")
+boxplot(weight ~ mpg01, data = Auto, main = "Weight vs mpg01")
+
+```
+
+```{r}
+##c
+set.seed(123)
+train <- sample(1:nrow(Auto), nrow(Auto) * 0.7)
+train_data <- Auto[train, ]
+test_data <- Auto[-train, ]
+
+```
+
+```{r}
+##d
+library(MASS)
+
+# Fit LDA model
+lda_model <- lda(mpg01 ~ horsepower + weight, data = train_data)
+lda_pred <- predict(lda_model, test_data)$class
+
+# Test error
+mean(lda_pred != test_data$mpg01)
+
+```
+```{r}
+##e
+# Fit QDA model
+qda_model <- qda(mpg01 ~ horsepower + weight, data = train_data)
+qda_pred <- predict(qda_model, test_data)$class
+
+# Test error
+mean(qda_pred != test_data$mpg01)
+
+```
+```{r}
+##f
+# Fit Logistic Regression model
+glm_model <- glm(mpg01 ~ horsepower + weight, data = train_data, family = binomial)
+glm_probs <- predict(glm_model, test_data, type = "response")
+glm_pred <- ifelse(glm_probs > 0.5, 1, 0)
+
+# Test error
+mean(glm_pred != test_data$mpg01)
+
+```
+```{r}
+library(class)
+
+# Extract predictors and response
+train_X <- train_data[, c("horsepower", "weight")]
+test_X <- test_data[, c("horsepower", "weight")]
+train_Y <- train_data$mpg01
+test_Y <- test_data$mpg01
+
+# Perform KNN with K = 1, 3, 5
+knn_pred_1 <- knn(train_X, test_X, train_Y, k = 1)
+knn_pred_3 <- knn(train_X, test_X, train_Y, k = 3)
+knn_pred_5 <- knn(train_X, test_X, train_Y, k = 5)
+
+# Test errors
+mean(knn_pred_1 != test_Y)
+mean(knn_pred_3 != test_Y)
+mean(knn_pred_5 != test_Y)
+
+```
+
